@@ -20,7 +20,7 @@ va_cli(int argc,
   if(argc == 3)
     {
       struct sockaddr_in tmp_addr;
-      if(inet_pton(AF_NET, argv[1], &(tmp_addr.sin_addr)) == 0)
+      if(inet_pton(AF_INET, argv[1], &(tmp_addr.sin_addr)) == 0)
 	{
 	  printf("IP Address is invalid\n");
 	  exit(0);
@@ -30,10 +30,11 @@ va_cli(int argc,
 	  strcpy(server_ip, argv[1]);
 	}
 
+      int i;
       char *port_str = argv[2];
-      for(int i = 0; port_str[i] != '\0'; i++)
+      for(i = 0; port_str[i] != '\0'; i++)
 	{
-	  if(!isdidit(port_str[i]))
+	  if(!isdigit(port_str[i]))
 	    {
 	      printf("Port is invalid\n!");
 	      exit(0);
@@ -63,8 +64,9 @@ va_ser(int argc,
 {
   if (argc == 2)
     {
+      int i;
       char *port_str = argv[1];
-      for (int i = 0; port_str[i] != '\0'; i++)
+      for (i = 0; port_str[i] != '\0'; i++)
 	{
 	  if (!isdigit(port_str[i]))
 	    {

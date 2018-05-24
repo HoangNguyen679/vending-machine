@@ -1,12 +1,17 @@
 #include "lib.h"
 #include "extra.h"
 
+void connectMng();
+void salesMng(int conn_sock);
+void equipInfoAccess(char s[BUFF_SIZE]);
+
+
 int
 main(int argc, char *argv[])
 {
 
   int port = 0;
-  valid_argument(argc, argv, &port);
+  va_ser(argc, argv, &port);
 
   int listen_sock, conn_sock; 
   char recv_data[BUFF_SIZE];
@@ -67,17 +72,7 @@ main(int argc, char *argv[])
       {
 	close(listen_sock);
 
-	printf("You got a connection from %s\n",
-	       inet_ntoa(client.sin_addr) );
-      
-	/* handle information from client */
-	char recv_data[BUFF_SIZE];
-	int byte_receive = recv(conn_sock,
-				recv_data,
-				BUFF_SIZE-1, 0);
-	recv_data[bytes_received] = '\0';
-	printf("\nReceive: %s\n", recv_data);
-
+	salesMng(conn_sock);
 	exit(0);
       }		
     close(conn_sock);	
@@ -85,4 +80,42 @@ main(int argc, char *argv[])
 
   close(listen_sock);
   return 0;
+}
+
+void
+salesMng(int conn_sock)
+{
+  printf("You got a connection from %s\n",
+	       inet_ntoa(client.sin_addr) );
+  
+  /* handle information from client */
+  char recv_data[BUFF_SIZE];
+  int byte_receive = recv(conn_sock,
+			  recv_data,
+			  BUFF_SIZE-1, 0);
+  recv_data[byte_receive] = '\0';
+  printf("\nReceive: %s\n", recv_data);
+  
+}
+
+
+void
+equipInfoAccess(char s[BUFF_SIZE])
+{
+  time_t t;
+  struct tm *info;
+
+  time(&t);
+  info = localtime( &rawtime );
+  
+  FILE *f = fopen("result.txt","a");
+  if(f==NULL)
+    {
+      printf("Cannot open file result.txt\n");
+      return;
+    }
+  
+  fprintf(f, "%s %s \n", asctime(info),b);    
+  fclose(f);
+
 }

@@ -21,10 +21,12 @@
 
 /*
  * database lib
+ * 
+ * #include <mysql.h>
  */
 
 #include <netdb.h>
-#include <mysql.h>
+
 
 /*
  * signal - error

@@ -1,12 +1,19 @@
 #include "lib.h"
 #include "extra.h"
 
+int pipe_p2c[2];
+int pipe_c2p[2];
+
+
+void equipMain(int client_sock);
+void commoditySales(int client_sock);
+
 int
 main(int argc, char *argv[])
 {
   int server_port = 0;
   char server_ip[16] = "";
-  va_cli(argc, argv,&server_ip, &server_port);
+  va_cli(argc, argv, server_ip, &server_port);
 
   int client_sock;
   
@@ -30,13 +37,70 @@ main(int argc, char *argv[])
       return 0;
     }
 
-  int byte_send = send(client_sock,
-		       "I'm big_finger",
-		       strlen(buff),
-		       0);
+  equipMain(client_sock);
   
   close(client_sock);
   return 0;
 }
 
+void
+equipMain(int client_sock)
+{
+  while(1)
+    {
+      menu_home();
+      int c;
+      scanf("%d", &c);
+      switch(c)
+	{
+	case 4:
+	  menu_bye();
+	  exit(0);
+	} // end switch menu home
 
+      char buff[BUFF_SIZE];
+      sprintf(buff,"%d",c);
+      
+     
+      pipe(pipe_p2c);
+      pipe(pipe_c2p);
+
+      pid_t pid = 0;
+      
+      switch(pid = fork())
+	{
+	case -1:
+	  perror("processGenerate fork");
+	  exit(1);
+	case 0:
+	  printf("childProcess start\n");
+	  commoditySales(client_sock);
+	  
+	default:
+	  printf("parentProcess start\n");
+
+	  close(pipe_p2c[0]);
+	  write(pipe_p2c[1], buff, strlen(buff) + 1);
+	  close(pipe_p2c[1]);
+
+
+		
+	} // end switch fork()
+    } // end while
+  
+}
+
+void
+commoditySales(int client_sock)
+{
+  char recv_str[BUFF_SIZE];
+
+  close(pipe_p2c[1]);
+  read(pipe_p2c[0], recv_str, BUFF_SIZE);
+  close(pipe_p2c[0]);
+  
+  printf("%s\n",recv_str);
+  send(client_sock, recv_str, strlen(recv_str) + 1)
+  
+}
+  
