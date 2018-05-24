@@ -44,6 +44,11 @@
 #define BUFF_SIZE      2048
 #define BASE_LENGTH	256
 
-#define BACKLOG 10   // Number of allowed connections 
+#define BACKLOG 10   // Number of allowed connections
 
+/*
+ * file data name
+ */
+
+#define salesHistory  "salesHistory.txt"
 

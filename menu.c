@@ -9,7 +9,7 @@ menu_home()
   printf("-- 1.  Pepsi           --\n"  
 	 "-- 2.  Coca            --\n"
 	 "-- 3.  Lala            --\n"
-	 "-- 4. Quit             --\n");
+	 "-- 4.  Quit            --\n");
   printf("-------------------------\n");
   printf("Your choice: ");
 }

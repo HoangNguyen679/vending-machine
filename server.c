@@ -1,9 +1,11 @@
 #include "lib.h"
 #include "extra.h"
+#include "drink.h"
 
 void connectMng();
 void salesMng(int conn_sock);
 void equipInfoAccess(char s[BUFF_SIZE]);
+void deliveryMng();
 
 
 int
@@ -71,7 +73,9 @@ main(int argc, char *argv[])
     if ((pid = fork()) == 0)
       {
 	close(listen_sock);
-
+	printf("You got a connection from %s\n",
+	       inet_ntoa(client.sin_addr) );
+  
 	salesMng(conn_sock);
 	exit(0);
       }		
@@ -85,8 +89,6 @@ main(int argc, char *argv[])
 void
 salesMng(int conn_sock)
 {
-  printf("You got a connection from %s\n",
-	       inet_ntoa(client.sin_addr) );
   
   /* handle information from client */
   char recv_data[BUFF_SIZE];
@@ -95,7 +97,8 @@ salesMng(int conn_sock)
 			  BUFF_SIZE-1, 0);
   recv_data[byte_receive] = '\0';
   printf("\nReceive: %s\n", recv_data);
-  
+
+  equipInfoAccess(recv_data);
 }
 
 
@@ -103,19 +106,36 @@ void
 equipInfoAccess(char s[BUFF_SIZE])
 {
   time_t t;
-  struct tm *info;
+  struct tm *info ;
 
   time(&t);
-  info = localtime( &rawtime );
+  info = localtime(&t);
   
-  FILE *f = fopen("result.txt","a");
-  if(f==NULL)
+  FILE *f = fopen(salesHistory, "a");
+
+  if(f == NULL)
     {
-      printf("Cannot open file result.txt\n");
+      printf("Cannot open file saleshistory\n");
       return;
     }
-  
-  fprintf(f, "%s %s \n", asctime(info),b);    
+
+  drink all_drink[20];
+  int max_drink;
+  readDrinkInfo(all_drink, &max_drink);
+  for(int i = 0 ; i < max_drink; i++)
+    printf("%d %s\n", all_drink[i].no, all_drink[i].brand);
+
+  int num;
+  sscanf(s,"%d", &num);
+  fprintf(f, "%s%s\n",
+	  asctime(info),
+	  no2brand(all_drink,max_drink,num));    
   fclose(f);
+
+}
+
+void
+deliveryMng()
+{
 
 }
