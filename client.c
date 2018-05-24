@@ -1,4 +1,3 @@
-#include "lib.h"
 #include "extra.h"
 
 int pipe_p2c[2];
