@@ -91,8 +91,8 @@ main(int argc, char *argv[])
 	close(listen_sock);
 	printf("You got a connection from %s\n",
 	       inet_ntoa(client.sin_addr) );
-  
-	salesMng(conn_sock);
+	while(1)
+	  salesMng(conn_sock);
 	exit(0);
       }		
     close(conn_sock);	
@@ -113,6 +113,7 @@ salesMng(int conn_sock)
 			  recv_data,
 			  BUFF_SIZE-1, 0);
   recv_data[byte_receive] = '\0';
+  if (strcmp(recv_data, "shut_down") == 0) exit(0);
   printf("\nReceive: %s\n", recv_data);
   sscanf(recv_data, "%d", &id_drink);
   equipInfoAccess(0, id_drink);
@@ -123,7 +124,7 @@ int
 equipInfoAccess(int action, int num)
 {
   /* 
-     action = 0: write history for buy
+     action = 0: write history for bought
      action = 1: read figures in database
      action = 2: write history and update inventory after delivery
    */
@@ -154,7 +155,6 @@ equipInfoAccess(int action, int num)
   }
 
   else if (action == 1){
-    
     return figures[num];
   }
 
