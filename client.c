@@ -1,4 +1,3 @@
-#include "lib.h"
 #include "extra.h"
 
 int pipe_p2c[2];
@@ -55,11 +54,13 @@ equipMain(int client_sock)
 	{
 	case 4:
 	  menu_bye();
+	  send(client_sock,
+	       "shut_down", strlen("shut_down") + 1, 0);
 	  exit(0);
 	} // end switch menu home
 
       char buff[BUFF_SIZE];
-      sprintf(buff,"%d",c);
+      sprintf(buff,"%d",c-1);
       
      
       pipe(pipe_p2c);

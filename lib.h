@@ -33,8 +33,10 @@
  */
 
 #include <errno.h>
+#
 #include <signal.h>
 #include <termios.h>
+
 
 /*
  * define size 
@@ -51,4 +53,5 @@
  */
 
 #define salesHistory  "salesHistory.txt"
+
 
