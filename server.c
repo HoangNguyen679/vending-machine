@@ -8,14 +8,12 @@ void checkForDelivery(){
   int i;
   while(1){    
     for (i = 0; i < max_drink; i++){
-      int* figures = readInventoryInfo(all_drink, max_drink);
-      if (figures[i] < 3){
+      int figure = equipInfoAccess(1, i);
+      if (figure < 3){
 	deliveryMng();
-	figures[i] += 10;
+	equipInfoAccess(2, i);
       }
-      writeInventoryInfo(all_drink, max_drink, figures);
     }
-    
     sleep(10);
   }
 }
@@ -24,7 +22,7 @@ int
 main(int argc, char *argv[])
 {
   
-  int port = 0,i;
+  int port = 0;
   va_ser(argc, argv, &port);
 
   int listen_sock, conn_sock; 
@@ -40,9 +38,8 @@ main(int argc, char *argv[])
   readDrinkInfo(all_drink, &max_drink);
   cache = (int *)malloc(max_drink * sizeof(int));
   if (cache == NULL) throwMallocException();
-  pthread_t delivery_thread;
-  pthread_create(&delivery_thread, NULL, checkForDelivery, NULL);
- 
+  if (fork() == 0)
+    checkForDelivery();
   
   // Construct a TCP socket to listen connection request
   if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -111,44 +108,74 @@ salesMng(int conn_sock)
   
   /* handle information from client */
   char recv_data[BUFF_SIZE];
+  int id_drink;
   int byte_receive = recv(conn_sock,
 			  recv_data,
 			  BUFF_SIZE-1, 0);
   recv_data[byte_receive] = '\0';
   printf("\nReceive: %s\n", recv_data);
-  equipInfoAccess(recv_data);
+  sscanf(recv_data, "%d", &id_drink);
+  equipInfoAccess(0, id_drink);
 }
 
 
-void
-equipInfoAccess(char s[BUFF_SIZE])
+int
+equipInfoAccess(int action, int num)
 {
-  int i;
+  /* 
+     action = 0: write history for buy
+     action = 1: read figures in database
+     action = 2: write history and update inventory after delivery
+   */
   time_t t;
   struct tm *info ;
   time(&t);
   info = localtime(&t);
-  FILE *f = fopen(salesHistory, "a");
-  if(f == NULL)
+  
+  int* figures = readInventoryInfo(all_drink, max_drink);
+  //for(i = 0 ; i < max_drink; i++)
+  //  printf("%d %s\n", all_drink[i].no, all_drink[i].brand);
+
+  if (action == 0){
+    FILE *f = fopen(salesHistory, "a");
+    if(f == NULL)
     {
       printf("Cannot open file saleshistory\n");
-      return;
-    }  
-  for(i = 0 ; i < max_drink; i++)
-    printf("%d %s\n", all_drink[i].no, all_drink[i].brand);
+      exit(-1);
+    }
+    cache[num] += 1;
+    fprintf(f, "%s Bought: %s\n",
+	    asctime(info),
+	    no2brand(all_drink,max_drink,num));    
+    fclose(f);
+    updateInventoryInfo(figures, cache, max_drink);
+    writeInventoryInfo(all_drink, max_drink, figures);
+    return -1;
+  }
 
-  int num;
-  sscanf(s,"%d", &num);
-  cache[num] += 1;
-  printf("sau khi cap nhat: %d:%d\n", num, cache[1]);
-  fprintf(f, "%s%s\n",
-	  asctime(info),
-	  no2brand(all_drink,max_drink,num));    
-  fclose(f);
+  else if (action == 1){
+    
+    return figures[num];
+  }
 
-  int* figures = readInventoryInfo(all_drink, max_drink);
-  updateInventoryInfo(figures, cache, max_drink);
-  writeInventoryInfo(all_drink, max_drink, figures);
+  else if (action == 2){   
+    cache[num] -= 10;
+    FILE *f = fopen(salesHistory, "a");
+    if(f == NULL)
+    {
+      printf("Cannot open file saleshistory\n");
+      exit(-1);
+    }
+    fprintf(f, "%s Deliveried: %s + 10 \n",
+	    asctime(info),
+	    no2brand(all_drink, max_drink, num));    
+    fclose(f);
+    updateInventoryInfo(figures, cache, max_drink);
+    writeInventoryInfo(all_drink, max_drink, figures);
+    return -1;
+  }
+  else
+    exit(-1);
 }
 
 void

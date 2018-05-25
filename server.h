@@ -4,7 +4,7 @@
 
 void connectMng();
 void salesMng(int conn_sock);
-void equipInfoAccess(char s[BUFF_SIZE]);
+int equipInfoAccess(int action, int num);
 void deliveryMng();
 void checkForDelivery();
 

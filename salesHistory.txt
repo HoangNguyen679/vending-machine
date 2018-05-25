@@ -1,72 +1,10 @@
-Thu May 24 18:40:04 2018
-(null)
-Thu May 24 18:49:32 2018
-Coca
-Thu May 24 18:50:52 2018
-Pepsi
-Thu May 24 18:53:06 2018
-Lala
-Fri May 25 00:44:44 2018
-Pepsi
-Fri May 25 03:53:13 2018
-Pepsi
-Fri May 25 03:54:07 2018
-
-Fri May 25 03:54:27 2018
-Coca
-Fri May 25 04:08:12 2018
-Pepsi
-Fri May 25 04:14:46 2018
-Pepsi
-Fri May 25 04:17:13 2018
-Pepsi
-Fri May 25 04:21:27 2018
-Pepsi
-Fri May 25 04:37:02 2018
-(null)
-Fri May 25 04:42:04 2018
-Coca
-Fri May 25 04:47:52 2018
-Coca
-Fri May 25 04:50:20 2018
-Coca
-Fri May 25 05:01:08 2018
-Coca
-Fri May 25 05:12:53 2018
-Coca
-Fri May 25 05:12:59 2018
-Coca
-Fri May 25 05:13:04 2018
-Coca
-Fri May 25 05:13:07 2018
-Coca
-Fri May 25 05:13:09 2018
-Coca
-Fri May 25 05:14:25 2018
-Coca
-Fri May 25 05:15:32 2018
-Coca
-Fri May 25 05:16:51 2018
-Coca
-Fri May 25 05:18:24 2018
-Coca
-Fri May 25 05:18:57 2018
-Coca
-Fri May 25 05:21:09 2018
-Coca
-Fri May 25 05:24:25 2018
-Coca
-Fri May 25 05:27:44 2018
-Coca
-Fri May 25 05:29:42 2018
-Coca
-Fri May 25 05:31:10 2018
-Coca
-Fri May 25 05:32:11 2018
-Coca
-Fri May 25 05:34:25 2018
-Coca
-Fri May 25 05:36:06 2018
-Coca
-Fri May 25 06:13:40 2018
-Coca
+Fri May 25 17:36:06 2018
+ Deliveried: Pepsi + 10 
+Fri May 25 17:36:06 2018
+ Deliveried: Coca + 10 
+Fri May 25 17:36:06 2018
+ Deliveried: Lala + 10 
+Fri May 25 17:36:16 2018
+ Bought: Coca
+Fri May 25 17:36:36 2018
+ Deliveried: Lala + 10 
