@@ -1,29 +1,12 @@
 #include "server.h"
 
-int *cache;
 int max_drink;
 drink all_drink[20];
 int *figures;
 
 void checkForDelivery(){
   int i;
-  int shmid; 
-  if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
-        printf("Can't creat share segment memory on main function!\n");
-        //Segment probably already exists - try as a client
-        exit(-1);
-    }
-  else {
-        printf("Success! Created share segment memory on main thread!\n");
-  }
-
-  if( (figures = (int *)shmat(shmid, 0, 0)) == (int *)-1 ) {
-        printf("Can't attach shared memory segment!\n");
-        exit(1);
-    } else {
-        printf("Success! Attached share segment memory on main thread!\n");
-  }
-  figures = readInventoryInfo(all_drink, max_drink);
+  
   while(1){    
     for (i = 0; i < max_drink; i++){
       int figure = equipInfoAccess(1, i);
@@ -54,10 +37,27 @@ main(int argc, char *argv[])
   pid_t pid;
   
   readDrinkInfo(all_drink, &max_drink);
-  cache = (int *)malloc(max_drink * sizeof(int));
-  if (cache == NULL) throwMallocException();
-  if (fork() == 0)
+  if (fork() == 0){
+    int shmid; 
+    if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
+      printf("Can't creat share segment memory on main function!\n");
+      //Segment probably already exists - try as a client
+      exit(-1);
+    }
+    else {
+      printf("Success! Created share segment memory on main thread!\n");
+    }
+    
+    if( (figures = (int *)shmat(shmid, 0, 0)) == (int *)-1 ) {
+      printf("Can't attach shared memory segment!\n");
+      exit(1);
+    } else {
+      printf("Success! Attached share segment memory on main thread!\n");
+    }
+    figures = readInventoryInfo(all_drink, max_drink);
+    
     checkForDelivery();
+  }
   int shmid; 
   if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
         printf("Can't creat share segment memory on main function!\n");
@@ -178,12 +178,13 @@ equipInfoAccess(int action, int num)
       printf("Cannot open file saleshistory\n");
       exit(-1);
     }
-    cache[num] += 1;
+    //cache[num] += 1;
     fprintf(f, "%s Bought: %s\n",
 	    asctime(info),
 	    no2brand(all_drink,max_drink,num));    
     fclose(f);
-    updateInventoryInfo(figures, cache, max_drink);
+    //updateInventoryInfo(figures, cache, max_drink);
+    figures[num] -= 1;
     printf("%d\n", figures[num]);
     writeInventoryInfo(all_drink, max_drink, figures);
     return -1;
@@ -194,7 +195,7 @@ equipInfoAccess(int action, int num)
   }
 
   else if (action == 2){   
-    cache[num] -= 10;
+    //cache[num] -= 10;
     FILE *f = fopen(salesHistory, "a");
     if(f == NULL)
     {
@@ -205,7 +206,8 @@ equipInfoAccess(int action, int num)
 	    asctime(info),
 	    no2brand(all_drink, max_drink, num));    
     fclose(f);
-    updateInventoryInfo(figures, cache, max_drink);
+    //updateInventoryInfo(figures, cache, max_drink);
+    figures[num] += 10;
     writeInventoryInfo(all_drink, max_drink, figures);
     return -1;
   }

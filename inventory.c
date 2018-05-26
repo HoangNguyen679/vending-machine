@@ -32,13 +32,3 @@ void writeInventoryInfo(drink* all_drink, int max_drink, int* figures){
   fclose(f);
 }
 
-void updateInventoryInfo(int* figures, int* cache, int max_drink){
-  int i;
-  for (i = 0; i < max_drink; i++){
-    figures[i] -= cache[i];
-    cache[i] = 0;
-    
-  }
- 
-}
-
