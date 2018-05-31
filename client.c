@@ -2,7 +2,7 @@
 
 int pipe_p2c[2];
 int pipe_c2p[2];
-
+int* figures ;
 
 void equipMain(int client_sock);
 void commoditySales(int client_sock);
@@ -10,7 +10,8 @@ void commoditySales(int client_sock);
 int
 main(int argc, char *argv[])
 {
-  int* figures = (int*) malloc(3 * sizeof(int));
+
+  figures = (int*) malloc(3 * sizeof(int));
   char* figures_str = (char*) malloc(BUFF_SIZE);
   int server_port = 0;
   char server_ip[16] = "";
@@ -55,6 +56,13 @@ equipMain(int client_sock)
       menu_home();
       int c;
       scanf("%d", &c);
+      if (figures[c-1] <= 0 && c != 4){
+	printf("sold out!\n");
+	continue;
+      }
+      else if (c != 4)
+	figures[c-1] -= 1; 
+      
       switch(c)
 	{
 	case 4:

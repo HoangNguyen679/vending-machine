@@ -2,7 +2,6 @@
 
 int max_drink;
 drink all_drink[20];
-int *figures;
 
 void checkForDelivery(){
   int i;
@@ -37,42 +36,8 @@ main(int argc, char *argv[])
   pid_t pid;
   
   readDrinkInfo(all_drink, &max_drink);
-  if (fork() == 0){
-    int shmid; 
-    if((shmid = shmget( 1234, max_drink * sizeof(int), IPC_CREAT|0664)) == -1) {
-      printf("Can't creat share segment memory on main function!\n");
-      //Segment probably already exists - try as a client
-      exit(-1);
-    }
-    else {
-      printf("Success! Created share segment memory on main thread!\n");
-    }
-    
-    if( (figures = (int *)shmat(shmid, 0, 0)) == (int *)-1 ) {
-      printf("Can't attach shared memory segment!\n");
-      exit(1);
-    } else {
-      printf("Success! Attached share segment memory on main thread!\n");
-    }
-    figures = readInventoryInfo(all_drink, max_drink);
-    
+  if (fork() == 0){   
     checkForDelivery();
-  }
-  int shmid; 
-  if((shmid = shmget( 1234, max_drink * sizeof(int), IPC_CREAT|0664)) == -1) {
-        printf("Can't creat share segment memory on main function!\n");
-        //Segment probably already exists - try as a client
-        exit(-1);
-  }
-  else {
-    printf("Success! Created share segment memory on main thread!\n");
-  }
-
-  if( (figures = (int *)shmat(shmid, 0, 0)) == (int *)-1 ) {
-    printf("Can't attach shared memory segment!\n");
-    exit(1);
-  } else {
-    printf("Success! Attached share segment memory on main thread!\n");
   }
   // Construct a TCP socket to listen connection request
   if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
