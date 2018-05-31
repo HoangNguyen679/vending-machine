@@ -5,7 +5,7 @@ int max_drink;
 drink all_drink[20];
 
 
-void checkForDelivery(client_info *clt){
+void checkForDelivery(client_info *clt, int conn_sock){
   int i = clientName2id(clt->name);
   int j;
   
@@ -15,7 +15,7 @@ void checkForDelivery(client_info *clt){
 	printf("sndvcoiashdvoihadsoigvjhaDSOIHFVAOISDNJHVCAOSIDJHFVOIADSHVOI %d\n", i);
         if (figure < 3){
 	  printf("%d\n", figure);
-	  deliveryMng();
+	  deliveryMng(conn_sock,j);
 	  equipInfoAccess(2, j, &client_set[i]);
         
       }
@@ -98,29 +98,39 @@ main(int argc, char *argv[])
 	close(listen_sock);
 	printf("You got a connection from %s\n",
 	       inet_ntoa(client.sin_addr) );
+	
+	
+	char client_name[100] = "";
+	if (recv(conn_sock, client_name, 100, 0) < 0) {
+	  printf("Cannot recv machine's name!");
+	  return 0;
+	}
+	
+	client_info* recv_client = findClient(client_name);
+	
+	printf("%d %d %d\n",
+	       equipInfoAccess(1, 0, recv_client),
+	       equipInfoAccess(1, 1, recv_client),
+	       equipInfoAccess(1, 2, recv_client));
+	
+	sprintf(figures_str,"%d %d %d",
+		equipInfoAccess(1, 0, recv_client),
+		equipInfoAccess(1, 1, recv_client),
+		equipInfoAccess(1, 2, recv_client));
 
+	send(conn_sock, figures_str, BUFF_SIZE, 0);
 
-  char client_name[100] = "";
-  if (recv(conn_sock, client_name, 100, 0) < 0) {
-      printf("Cannot recv machine's name!");
-      return 0;
-  }
-
-  client_info* recv_client = findClient(client_name);
-
-  printf("%d %d %d\n", equipInfoAccess(1, 0, recv_client), equipInfoAccess(1, 1, recv_client), equipInfoAccess(1, 2, recv_client));
-  sprintf(figures_str,"%d %d %d", equipInfoAccess(1, 0, recv_client), equipInfoAccess(1, 1, recv_client), equipInfoAccess(1, 2, recv_client));
-  send(conn_sock, figures_str, BUFF_SIZE, 0);
-  if (fork() == 0)
-      checkForDelivery(recv_client);
-  
-  printf("%s\n", recv_client->name);
-
+	if (fork() == 0)
+	  checkForDelivery(recv_client,conn_sock);
+	
+	printf("%s\n", recv_client->name);
+	
 	printf("You got a connection from %s\nVending machine's name: %s\n",
 	       inet_ntoa(client.sin_addr), client_name);
-
+	
 	while(1)
 	  salesMng(conn_sock, recv_client);
+
 	exit(0);
       }		
     close(conn_sock);	
@@ -228,7 +238,10 @@ equipInfoAccess(int action, int num, client_info *clt)
 }
 
 void
-deliveryMng()
+deliveryMng(int conn_sock, int j)
 {
+  char str[BUFF_SIZE];
+  sprintf(str,"%d",j);
+  send(conn_sock,str,BUFF_SIZE,0);
   printf("dang giao hang\n");
 }

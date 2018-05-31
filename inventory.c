@@ -5,7 +5,8 @@ int* readInventoryInfo(drink* all_drink, int max_drink){
   if( countPerDrink == NULL){
     throwMallocException();
   }
-  int i = 0, tmp_count; 
+  int i = 0, tmp_count;
+  char a[100], b[100];
   FILE *f = fopen(INVENTORY_INFO_FILENAME, "r");
   if (f == NULL){
     for (i = 0; i < 3 * max_drink; i++)
@@ -13,7 +14,7 @@ int* readInventoryInfo(drink* all_drink, int max_drink){
     return countPerDrink;
   }
   while (i < max_drink * 3){
-    fscanf(f, "%d\n", &tmp_count);
+    fscanf(f, "%s\t%s\t%d\n", a, b, &tmp_count);
     countPerDrink[i] = tmp_count; // id_drink > max_len ?
     i++;
   }
@@ -22,11 +23,14 @@ int* readInventoryInfo(drink* all_drink, int max_drink){
 }
 
 void writeInventoryInfo(drink* all_drink, int max_drink, int* figures){
+  char* client_str[] = {"VM1", "VM2", "VM3"};
   FILE *f = fopen(INVENTORY_INFO_FILENAME, "w");
   int i = 0;
   while(i < max_drink * 3){
     printf("%d\n", figures[i]);
-    fprintf(f, "%d\n", figures[i]);
+    int may = i /  3;
+    int nhan = i % 3;
+    fprintf(f, "%s\t%s\t%d\n", client_str[may], all_drink[nhan].brand, figures[i]);
     i++;
   }
   fclose(f);
