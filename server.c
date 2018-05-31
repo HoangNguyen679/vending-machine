@@ -6,7 +6,6 @@ int *figures;
 
 void checkForDelivery(){
   int i;
-  
   while(1){    
     for (i = 0; i < max_drink; i++){
       int figure = equipInfoAccess(1, i);
@@ -22,7 +21,8 @@ void checkForDelivery(){
 int
 main(int argc, char *argv[])
 {
-  
+
+  char* figures_str = (char *)malloc(BUFF_SIZE);
   int port = 0;
   va_ser(argc, argv, &port);
 
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
   readDrinkInfo(all_drink, &max_drink);
   if (fork() == 0){
     int shmid; 
-    if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
+    if((shmid = shmget( 1234, max_drink * sizeof(int), IPC_CREAT|0664)) == -1) {
       printf("Can't creat share segment memory on main function!\n");
       //Segment probably already exists - try as a client
       exit(-1);
@@ -59,20 +59,20 @@ main(int argc, char *argv[])
     checkForDelivery();
   }
   int shmid; 
-  if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
+  if((shmid = shmget( 1234, max_drink * sizeof(int), IPC_CREAT|0664)) == -1) {
         printf("Can't creat share segment memory on main function!\n");
         //Segment probably already exists - try as a client
         exit(-1);
-    }
+  }
   else {
-        printf("Success! Created share segment memory on main thread!\n");
+    printf("Success! Created share segment memory on main thread!\n");
   }
 
   if( (figures = (int *)shmat(shmid, 0, 0)) == (int *)-1 ) {
-        printf("Can't attach shared memory segment!\n");
-        exit(1);
-    } else {
-        printf("Success! Attached share segment memory on main thread!\n");
+    printf("Can't attach shared memory segment!\n");
+    exit(1);
+  } else {
+    printf("Success! Attached share segment memory on main thread!\n");
   }
   // Construct a TCP socket to listen connection request
   if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
       perror("\nError: ");
       return 0;
     }
-
+  
   
   // Bind address to socket
   bzero(&server, sizeof(server));
@@ -125,6 +125,9 @@ main(int argc, char *argv[])
 	close(listen_sock);
 	printf("You got a connection from %s\n",
 	       inet_ntoa(client.sin_addr) );
+	printf("%d %d %d", equipInfoAccess(1, 0), equipInfoAccess(1, 1), equipInfoAccess(1, 2));
+	sprintf(figures_str,"%d %d %d", equipInfoAccess(1, 0), equipInfoAccess(1, 1), equipInfoAccess(1, 2));
+	send(conn_sock, figures_str, BUFF_SIZE, 0);
 	while(1)
 	  salesMng(conn_sock);
 	exit(0);

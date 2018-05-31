@@ -5,4 +5,3 @@
 
 int* readInventoryInfo(drink* all_drink, int max_drink);
 void writeInventoryInfo(drink* all_drink, int max_drink, int* figures);
-void updateInventoryInfo(int* figures, int* cache, int max_drink);

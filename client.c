@@ -10,6 +10,8 @@ void commoditySales(int client_sock);
 int
 main(int argc, char *argv[])
 {
+  int* figures = (int*) malloc(3 * sizeof(int));
+  char* figures_str = (char*) malloc(BUFF_SIZE);
   int server_port = 0;
   char server_ip[16] = "";
   va_cli(argc, argv, server_ip, &server_port);
@@ -36,6 +38,9 @@ main(int argc, char *argv[])
       return 0;
     }
 
+  recv(client_sock,figures_str,  BUFF_SIZE, 0);
+  sscanf(figures_str, "%d %d %d", figures, figures + 1, figures + 2);
+  printf("recvd figures from server %d %d %d\n", figures[0], figures[1], figures[2]);
   equipMain(client_sock);
   
   close(client_sock);
