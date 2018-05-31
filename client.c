@@ -12,7 +12,9 @@ main(int argc, char *argv[])
 {
   int server_port = 0;
   char server_ip[16] = "";
-  va_cli(argc, argv, server_ip, &server_port);
+  char name[100] = "";
+
+  va_cli(argc, argv, server_ip, &server_port, &name);
 
   int client_sock;
   
@@ -35,6 +37,11 @@ main(int argc, char *argv[])
                 Client exit imediately!\n");
       return 0;
     }
+
+  if(send(client_sock, name, 100, 0) < 0) {
+    printf("Cannot send machine's name\nClient exit imediately!\n");
+    return 0;
+  }
 
   equipMain(client_sock);
   

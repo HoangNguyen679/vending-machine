@@ -4,17 +4,25 @@ int max_drink;
 drink all_drink[20];
 int *figures;
 
+client_info client_set[] = {
+  { .name = "VM1" },
+  { .name = "VM2" },
+  { .name = "VM3" }
+};
+
 void checkForDelivery(){
   int i;
   
-  while(1){    
-    for (i = 0; i < max_drink; i++){
-      int figure = equipInfoAccess(1, i);
-      if (figure < 3){
-	deliveryMng();
-	equipInfoAccess(2, i);
+  while(1){   
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+      for (i = 0; i < client_set[i].max_drink; i++){
+        int figure = equipInfoAccess(1, i, &client_set[i]);
+        if (figure < 3){
+        	deliveryMng();
+        	equipInfoAccess(2, i, &client_set[i]);
+        }
       }
-    }
+  }
     sleep(10);
   }
 }
@@ -22,6 +30,7 @@ void checkForDelivery(){
 int
 main(int argc, char *argv[])
 {
+  printf("Vending machine list:\n1.VM1\n2.VM2\n3.VM3\n");
   
   int port = 0;
   va_ser(argc, argv, &port);
@@ -39,7 +48,7 @@ main(int argc, char *argv[])
   readDrinkInfo(all_drink, &max_drink);
   if (fork() == 0){
     int shmid; 
-    if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
+    if((shmid = shmget( 1234, max_drink * sizeof(int), IPC_CREAT|0666)) == -1) {
       printf("Can't creat share segment memory on main function!\n");
       //Segment probably already exists - try as a client
       exit(-1);
@@ -59,7 +68,7 @@ main(int argc, char *argv[])
     checkForDelivery();
   }
   int shmid; 
-  if((shmid = shmget( 1234, max_drink * sizeof(int), 0)) == -1) {
+  if((shmid = shmget( 1234, max_drink * sizeof(int), IPC_CREAT|0666)) == -1) {
         printf("Can't creat share segment memory on main function!\n");
         //Segment probably already exists - try as a client
         exit(-1);
@@ -123,10 +132,22 @@ main(int argc, char *argv[])
     if ((pid = fork()) == 0)
       {
 	close(listen_sock);
-	printf("You got a connection from %s\n",
-	       inet_ntoa(client.sin_addr) );
+
+  char client_name[100] = "";
+  if (recv(conn_sock, client_name, 100, 0) < 0) {
+      printf("Cannot recv machine's name!");
+      return 0;
+  }
+
+  client_info* recv_client = findClient(client_name);
+
+  printf("%s\n", recv_client->name);
+
+	printf("You got a connection from %s\nVending machine's name: %s\n",
+	       inet_ntoa(client.sin_addr), client_name);
+
 	while(1)
-	  salesMng(conn_sock);
+	  salesMng(conn_sock, recv_client);
 	exit(0);
       }		
     close(conn_sock);	
@@ -136,8 +157,19 @@ main(int argc, char *argv[])
   return 0;
 }
 
+client_info *findClient(char name[]) {
+  printf("%shaha\n", name);
+  for (int i = 0; i < 3; i++) {
+    if (strcmp(client_set[i].name, name) == 0) {
+      return &client_set[i];
+    }
+  }
+  printf("Invalid client name\n");
+  return NULL;
+}
+
 void
-salesMng(int conn_sock)
+salesMng(int conn_sock, client_info *clt)
 {
   
   /* handle information from client */
@@ -150,12 +182,12 @@ salesMng(int conn_sock)
   if (strcmp(recv_data, "shut_down") == 0) exit(0);
   printf("\nReceive: %s\n", recv_data);
   sscanf(recv_data, "%d", &id_drink);
-  equipInfoAccess(0, id_drink);
+  equipInfoAccess(0, id_drink, clt);
 }
 
 
 int
-equipInfoAccess(int action, int num)
+equipInfoAccess(int action, int num, client_info *clt)
 {
   /* 
      action = 0: write history for bought
@@ -167,7 +199,7 @@ equipInfoAccess(int action, int num)
   time(&t);
   info = localtime(&t);
   
-  int* figures = readInventoryInfo(all_drink, max_drink);
+  int* figures = readInventoryInfo(clt->all_drink, clt->max_drink);
   //for(i = 0 ; i < max_drink; i++)
   //  printf("%d %s\n", all_drink[i].no, all_drink[i].brand);
 
@@ -175,18 +207,18 @@ equipInfoAccess(int action, int num)
     FILE *f = fopen(salesHistory, "a");
     if(f == NULL)
     {
-      printf("Cannot open file saleshistory\n");
+      printf("Cannot open file sales history\n");
       exit(-1);
     }
     //cache[num] += 1;
     fprintf(f, "%s Bought: %s\n",
 	    asctime(info),
-	    no2brand(all_drink,max_drink,num));    
+	    no2brand(clt->all_drink, clt->max_drink,num));    
     fclose(f);
     //updateInventoryInfo(figures, cache, max_drink);
     figures[num] -= 1;
     printf("%d\n", figures[num]);
-    writeInventoryInfo(all_drink, max_drink, figures);
+    writeInventoryInfo(clt->all_drink, clt->max_drink, figures);
     return -1;
   }
 
@@ -202,13 +234,14 @@ equipInfoAccess(int action, int num)
       printf("Cannot open file saleshistory\n");
       exit(-1);
     }
+    fprintf(f, "Machine name: %\n", clt->name);
     fprintf(f, "%s Deliveried: %s + 10 \n",
 	    asctime(info),
-	    no2brand(all_drink, max_drink, num));    
+	    no2brand(clt->all_drink, clt->max_drink, num));    
     fclose(f);
     //updateInventoryInfo(figures, cache, max_drink);
     figures[num] += 10;
-    writeInventoryInfo(all_drink, max_drink, figures);
+    writeInventoryInfo(clt->all_drink, clt->max_drink, figures);
     return -1;
   }
   else
