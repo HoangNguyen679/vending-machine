@@ -32,3 +32,13 @@ void writeInventoryInfo(drink* all_drink, int max_drink, int* figures){
   fclose(f);
 }
 
+// void writeInventoryInfo(client_info *clt, int* figures){
+//   FILE *f = fopen(INVENTORY_INFO_FILENAME, "w");
+//   int i = 0;
+  
+//   while(i < max_drink){
+//     fprintf(f, "%s\t%d\n", no2brand(all_drink, max_drink, i), figures[i]);
+//     i++;
+//   }
+//   fclose(f);
+// }
