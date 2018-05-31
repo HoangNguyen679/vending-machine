@@ -1,16 +1,23 @@
 #include "server.h"
 
+
 int max_drink;
 drink all_drink[20];
 
-void checkForDelivery(){
-  int i;
-  while(1){    
-    for (i = 0; i < max_drink; i++){
-      int figure = equipInfoAccess(1, i);
-      if (figure < 3){
-	deliveryMng();
-	equipInfoAccess(2, i);
+
+void checkForDelivery(client_info *clt){
+  int i = clientName2id(clt->name);
+  int j;
+  
+  while(1){   
+      for (j = 0; j < max_drink; j++){
+        int figure = equipInfoAccess(1, j, &client_set[i]);
+	printf("sndvcoiashdvoihadsoigvjhaDSOIHFVAOISDNJHVCAOSIDJHFVOIADSHVOI %d\n", i);
+        if (figure < 3){
+	  printf("%d\n", figure);
+	  deliveryMng();
+	  equipInfoAccess(2, j, &client_set[i]);
+        
       }
     }
     sleep(10);
@@ -22,6 +29,8 @@ main(int argc, char *argv[])
 {
 
   char* figures_str = (char *)malloc(BUFF_SIZE);
+  printf("Vending machine list:\n1.VM1\n2.VM2\n3.VM3\n");
+  
   int port = 0;
   va_ser(argc, argv, &port);
 
@@ -36,9 +45,7 @@ main(int argc, char *argv[])
   pid_t pid;
   
   readDrinkInfo(all_drink, &max_drink);
-  if (fork() == 0){   
-    checkForDelivery();
-  }
+
   // Construct a TCP socket to listen connection request
   if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {  
@@ -84,17 +91,36 @@ main(int argc, char *argv[])
 	else
 	  perror("\nError: ");
       }
+    
 		
     if ((pid = fork()) == 0)
       {
 	close(listen_sock);
 	printf("You got a connection from %s\n",
 	       inet_ntoa(client.sin_addr) );
-	printf("%d %d %d", equipInfoAccess(1, 0), equipInfoAccess(1, 1), equipInfoAccess(1, 2));
-	sprintf(figures_str,"%d %d %d", equipInfoAccess(1, 0), equipInfoAccess(1, 1), equipInfoAccess(1, 2));
-	send(conn_sock, figures_str, BUFF_SIZE, 0);
+
+
+  char client_name[100] = "";
+  if (recv(conn_sock, client_name, 100, 0) < 0) {
+      printf("Cannot recv machine's name!");
+      return 0;
+  }
+
+  client_info* recv_client = findClient(client_name);
+
+  printf("%d %d %d\n", equipInfoAccess(1, 0, recv_client), equipInfoAccess(1, 1, recv_client), equipInfoAccess(1, 2, recv_client));
+  sprintf(figures_str,"%d %d %d", equipInfoAccess(1, 0, recv_client), equipInfoAccess(1, 1, recv_client), equipInfoAccess(1, 2, recv_client));
+  send(conn_sock, figures_str, BUFF_SIZE, 0);
+  if (fork() == 0)
+      checkForDelivery(recv_client);
+  
+  printf("%s\n", recv_client->name);
+
+	printf("You got a connection from %s\nVending machine's name: %s\n",
+	       inet_ntoa(client.sin_addr), client_name);
+
 	while(1)
-	  salesMng(conn_sock);
+	  salesMng(conn_sock, recv_client);
 	exit(0);
       }		
     close(conn_sock);	
@@ -104,8 +130,20 @@ main(int argc, char *argv[])
   return 0;
 }
 
+client_info *findClient(char name[]) {
+  printf("%shaha\n", name);
+  int i;
+  for (i = 0; i < 3; i++) {
+    if (strcmp(client_set[i].name, name) == 0) {
+      return &client_set[i];
+    }
+  }
+  printf("Invalid client name\n");
+  return NULL;
+}
+
 void
-salesMng(int conn_sock)
+salesMng(int conn_sock, client_info *clt)
 {
   
   /* handle information from client */
@@ -118,12 +156,12 @@ salesMng(int conn_sock)
   if (strcmp(recv_data, "shut_down") == 0) exit(0);
   printf("\nReceive: %s\n", recv_data);
   sscanf(recv_data, "%d", &id_drink);
-  equipInfoAccess(0, id_drink);
+  equipInfoAccess(0, id_drink, clt);
 }
 
 
 int
-equipInfoAccess(int action, int num)
+equipInfoAccess(int action, int num, client_info *clt)
 {
   /* 
      action = 0: write history for bought
@@ -134,6 +172,8 @@ equipInfoAccess(int action, int num)
   struct tm *info ;
   time(&t);
   info = localtime(&t);
+  int client_id;
+  client_id = clientName2id(clt -> name);
   
   int* figures = readInventoryInfo(all_drink, max_drink);
   //for(i = 0 ; i < max_drink; i++)
@@ -143,23 +183,25 @@ equipInfoAccess(int action, int num)
     FILE *f = fopen(salesHistory, "a");
     if(f == NULL)
     {
-      printf("Cannot open file saleshistory\n");
+      printf("Cannot open file sales history\n");
       exit(-1);
     }
     //cache[num] += 1;
-    fprintf(f, "%s Bought: %s\n",
+    fprintf(f, "%s: %s Bought: %s\n",
+	    clt -> name,
 	    asctime(info),
 	    no2brand(all_drink,max_drink,num));    
     fclose(f);
     //updateInventoryInfo(figures, cache, max_drink);
-    figures[num] -= 1;
+    figures[client_id * max_drink + num] -= 1;
     printf("%d\n", figures[num]);
     writeInventoryInfo(all_drink, max_drink, figures);
     return -1;
   }
 
   else if (action == 1){
-    return figures[num];
+    //    printf("thu in cai so ra coi %d\n", client_id * MAX_CLIENTS +  num);
+    return figures[client_id * MAX_CLIENTS +  num];
   }
 
   else if (action == 2){   
@@ -170,12 +212,14 @@ equipInfoAccess(int action, int num)
       printf("Cannot open file saleshistory\n");
       exit(-1);
     }
-    fprintf(f, "%s Deliveried: %s + 10 \n",
+    fprintf(f, "Machine name: %s\n", clt->name);
+    fprintf(f, "%s: %s Deliveried: %s + 10 \n",
+	    clt -> name,
 	    asctime(info),
 	    no2brand(all_drink, max_drink, num));    
     fclose(f);
-    //updateInventoryInfo(figures, cache, max_drink);
-    figures[num] += 10;
+    figures[client_id * MAX_CLIENTS + num] += 10;
+    printf("inadsjkfhaodsihfloaid %d\n",client_id * MAX_CLIENTS + num); 
     writeInventoryInfo(all_drink, max_drink, figures);
     return -1;
   }

@@ -15,7 +15,9 @@ main(int argc, char *argv[])
   char* figures_str = (char*) malloc(BUFF_SIZE);
   int server_port = 0;
   char server_ip[16] = "";
-  va_cli(argc, argv, server_ip, &server_port);
+  char name[100] = "";
+
+  va_cli(argc, argv, server_ip, &server_port, &name);
 
   int client_sock;
   
@@ -39,9 +41,15 @@ main(int argc, char *argv[])
       return 0;
     }
 
+  if(send(client_sock, name, 100, 0) < 0) {
+    printf("Cannot send machine's name\nClient exit imediately!\n");
+    return 0;
+  }
   recv(client_sock,figures_str,  BUFF_SIZE, 0);
   sscanf(figures_str, "%d %d %d", figures, figures + 1, figures + 2);
   printf("recvd figures from server %d %d %d\n", figures[0], figures[1], figures[2]);
+  
+
   equipMain(client_sock);
   
   close(client_sock);

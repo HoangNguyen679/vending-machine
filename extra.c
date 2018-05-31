@@ -1,11 +1,8 @@
 #include "extra.h"
 
-void va_cli(int argc,
-	    char *argv[],
-	    char *server_ip,
-	    int *server_port)
+void va_cli(int argc, char *argv[], char *server_ip, int *server_port, char *name)
 {
-  if(argc == 3)
+  if(argc == 4)
     {
       struct sockaddr_in tmp_addr;
       if(inet_pton(AF_INET, argv[1], &(tmp_addr.sin_addr)) == 0)
@@ -33,10 +30,11 @@ void va_cli(int argc,
 	{
 	  *server_port = atoi(port_str);
 	}
+    strcpy(name, argv[3]);
     }
   else
     {
-      printf("ERROR!!! Syntax like: ./client ip port\n");
+      printf("ERROR!!! Syntax like: ./client ip port machine_name\n");
       exit(0);
     }
 }
