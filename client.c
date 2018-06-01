@@ -69,10 +69,10 @@ main(int argc, char *argv[])
 	recv(client_sock,stri,BUFF_SIZE,0);
 	int x;
 	sscanf(stri,"%d", &x);
+        printf("\nDang giao hang cho 10s hi hi hi\n Co nhan cung khong duoc dau\n");
 	readCache(figures);
 	figures[x] += 10;
-	printf("%d %\d\n", x, figures[x]);
-	
+
 	writeCache(figures);
 	kill(pid,SIGSTOP);
 	pid_t pid2 = fork();
@@ -84,6 +84,7 @@ main(int argc, char *argv[])
 	sleep(10);
 	fseek(stdin,0,SEEK_END);
 	kill(pid2, SIGKILL);
+	menu_home(figures);
 	kill(pid, SIGCONT);
 	
 	
@@ -104,8 +105,7 @@ equipMain(int client_sock)
   
   while(1)
     {
-      printf("%d\n",1);
-      menu_home(); 
+      menu_home(figures); 
       int c;
       char i;
       //fflush(stdin);
